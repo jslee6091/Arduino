@@ -1,24 +1,35 @@
-// 스위치를 30초 동안 많이 누르기 게임
-#include <Wire.h> 
-#include <LiquidCrystal_I2C.h>
+// 2명의 플레이어가 각자의 스위치를 30초 동안 많이 누르기 게임
+// 누른 횟수와 경과 시간을 I2C LCD 보여줌
+#include <Wire.h> //I2C 통신 라이브러리
+#include <LiquidCrystal_I2C.h> // LCD 사용 위한 라이브러리
 #define BUTTON1 10
 #define BUTTON2 9
 #define BUTTON_START 8
 
+/*
+  I2C LCD는 SCL과 SDA 핀, VCC, GND 핀을 연결하여 사용한다.
+  SCL핀은 아두이노의 A5 핀, SDA핀은 아두이노의 A4 핀과 연결한다.
+  이는 I2C 통신에서 정해져있는 핀이므로 변경이 불가능하다.
+*/
+
 LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
+// 각 스위치별 클릭 횟수 저장 변수
 unsigned int buttonCnt1 = 0;
 unsigned int buttonCnt2 = 0;
 
+// 경과 시간 계산 위한 변수
 unsigned long currTime = 0;
 unsigned long prevTime = 0;
 
+// 전체 게임 시간
 unsigned int gameTime = 30;
 
 void setup()
 {
   pinMode(BUTTON1, INPUT_PULLUP);
   pinMode(BUTTON2, INPUT_PULLUP);
+  // 게임 시작 여부 전달 스위치
   pinMode(BUTTON_START, INPUT_PULLUP);
   lcd.init();                      // initialize the lcd 
   lcd.backlight();
@@ -27,56 +38,78 @@ void setup()
 
 void loop()
 {
+  // 첫번째 플레이어가 클릭한 경우
   if (button1P() == 1){
+    // 게임 시간이 다 지나가지 않았으면 첫번째 플레이어의 클릭 횟수 1 증가
     if (gameTime > 0){
       buttonCnt1++;
     }
     delay(50);
   }
+  // 두번째 플레이어가 클릭한 경우
   if (button2P() == 1){
+    // 게임 시간이 다 지나가지 않았으면 두번째 플레이어의 클릭 횟수 1 증가
     if (gameTime > 0){
       buttonCnt2++;
     }
     delay(50);
   }
+  // 게임이 시작된 경우
   if (buttonStart() == 1){
+    // 전체 게임시간 30초로 설정, 각 플레이어의 클릭 횟수 0으로 설정
     gameTime = 30;
     buttonCnt1 = 0;
     buttonCnt2 = 0;
     delay(50);
   }
 
-  currTime = millis();             // get the current time
+  // get the current time
+  currTime = millis();
+  // 현재 시간이 이전 시간보다 1초 이상 지나간 경우
   if(currTime - prevTime >= 1000){
+    // 이전 시간을 현재 시간으로 갱신
     prevTime = currTime;
+    // 게임 시간이 아직 다 지나가지 않은 경우 1초 감소
+    // 플레이어가 현재 게임 시간이 얼마나 남았는지 확인 가능
     if (gameTime > 0){
       gameTime--;
     }
+    // LCD 모든 글자 지움
     lcd.clear();
-    lcd.setCursor(3,0);              // move cursor to 1 칸, 0줄(first line)
+    // move cursor to 1 칸, 0줄(first line)
+    lcd.setCursor(3,0);
     lcd.print("Time : ");
     lcd.print(gameTime);
-    lcd.setCursor(0,1);              // move cursor to 5 칸, 1줄(second line)
+    // move cursor to 5 칸, 1줄(second line)
+    lcd.setCursor(0,1);
     lcd.print("1P : ");
     lcd.print(buttonCnt1);
-    lcd.setCursor(8,1);              // move cursor to 5 칸, 1줄(second line)
+    // move cursor to 8 칸, 1줄(second line)
+    lcd.setCursor(8,1);
     lcd.print("2P : ");
     lcd.print(buttonCnt2);
   }
 }
 
+// 첫번째 플레이어의 스위치 클릭 여부를 반환하는 함수
 int button1P(){
+  // 정적 변수 선언 - 함수 호출 시 이전에 설정한 값을 그대로 유지하기 위함
   static int oldSW = 1;
   static int newSW = 1;
   newSW = digitalRead(BUTTON1);
+  // 클릭한 경우 - 이전값과 현재값이 서로 다른 경우
   if (newSW != oldSW){
     oldSW = newSW;
+    // 새로운 값이 1 -> 0으로 변화한 경우 클릭이 이루어졌으므로 1 반환
     if (newSW == 0){
       return 1;
     }
   }
+  // 클릭하지 않았으면 0 반환
   return 0;
 }
+
+// 두번째 플레이어의 스위치 클릭 여부를 반환하는 함수
 int button2P(){
   static int oldSW = 1;
   static int newSW = 1;
@@ -89,6 +122,8 @@ int button2P(){
   }
   return 0;
 }
+
+// 게임의 시작을 알려주는 스위치의 클릭 여부를 반환하는 함수
 int buttonStart(){
   static int oldSW = 1;
   static int newSW = 1;
