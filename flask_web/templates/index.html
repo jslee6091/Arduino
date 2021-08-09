@@ -9,10 +9,10 @@
         background-color: #008000;
       }
       .auto-style6 {
-	border-style: solid;
-	border-color: #000000;
-	text-align: center;
-	color: #FFFFFF;
+        border-style: solid;
+        border-color: #000000;
+        text-align: center;
+        color: #FFFFFF;
         background-color: #FF9900;
       }
     </style>
@@ -25,18 +25,22 @@
       <br>
       LED And GPIO Control from Flask Web Page
       <table style="width: 50%">
-	<tr>
-	  <td class="auto-style6" style="height: 81; width: 30%">
-	    <strong>
-	      <a href="led_control_act?led=1">LED ON</a>
-	    </strong>
-	  </td>
-	  <td class="auto-style1" style="height: 81; width: 50%">&nbsp;</td>
-
-
-	  
+        <tr>
+          <td class="auto-style6" style="height: 81; width: 30%">
+            <strong>
+              <a href="led_control?led=1">LED ON</a>
+            </strong>
+          </td>
+          <td class="auto-style1" style="height: 81; width: 50%">&nbsp;</td>
+          <td class="auto-style6" style="height: 81; width: 30%">
+            <strong>
+              <a href="led_control?led=2">LED OFF</a>
+            </strong>
+          </td>
+        </tr>
+      </table>
+      <strong><br>LED is {{ ret }}</strong>
     </center>
   </body>
-
 </html>
 
