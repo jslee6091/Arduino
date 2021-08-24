@@ -1,6 +1,7 @@
 // 웹 서버에 접속하여 홈페이지 가져와서 화면에 나타내는 프로그램
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,14 +41,14 @@ int main(int argc, char *argv[]){
     /* check input condition */
     if(argc < 2){
         puts("Usage : robot hostname <url>");
-        return;
+        return 0;
     }
     
     // DNS 서비스를 통해 호스트 이름을 IP 주소로 변환
     host_info = gethostbyname(argv[1]);
     if(host_info == NULL){
         printf("Host not found! : %s\n\r", argv[1]);
-        return;
+        return 0;
     }
 
     // 기억장소 server를 server의 크기만큼 0으로 초기화
@@ -70,7 +71,7 @@ int main(int argc, char *argv[]){
     result = connect(sock, (struct sockaddr *)&server, sizeof(server));
     if(result == -1){
         printf("Connect failed : %s\n", argv[2]);
-        return;
+        return 0;
     }
 
     printf("Connected %s.\n", argv[1]);
