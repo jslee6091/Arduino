@@ -11,46 +11,47 @@
 int main(int argc, char *argv[]){
     int sockfd;
     struct sockaddr_in servAddr;
-    char sendBuffer[BUFSIZE + 1], recvBuffer[BUFSIZE + 1];
-    int recvLen, servLen;
+    struct sockaddr_in clntAddr;
+    char recvBuffer[BUFSIZE + 1];
+    int recvLen, clntLen;
 
-    if(argc != 3){
-	    printf("Usage: %s IP_address Port\n", argv[0]);
-	    return 1;
-    }
-    
     // Make UDP Socket
     if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1){
-	perror("socket failed");
-	return 1;
+        perror("socket failed");
+        return 1;
     }
+    
+    // Initialize servAddr to 0
     memset(&servAddr, 0, sizeof(servAddr));
     
     // Store IP and Port to servAddr
     servAddr.sin_family = AF_INET;
-    // inet_addr converts decimal address to binary IP(only IPv4)
-    servAddr.sin_addr.s_addr = inet_addr(argv[1]);
-    addr.sin_port = htons(atoi(argv[2]));
+    servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servAddr.sin_port = htons(atoi(argv[1]));
+
+    // Connect address information to socket
+    if(bind(sockfd, (struct sockaddr*)&servAddr, sizeof(servAddr)) == -1){
+        perror("bind failed");
+        return 1;
+    }
 
     while(1){
-	    printf("Input sending message ==> ");
-   	    fgets(sendBuffer, BUFSIZE, stdin);
-	    if(!strncmp(sendBuffer, "quit", 4)){
-		    break;
-	    }
-
-	    if(sendto(sockfd, sendBuffer,strlen(sendBuffer), 0, (struct sockaddr*)&servAddr, sizeof(servAddr)) != strlen(sendBuffer)){
-		    perror("sendto failed");
-		    return 1;
-	    }
-	    servLen = sizeof(servAddr);
-
-	    if((recvLen=recvfrom(sockfd, recvBuffer,strlen(recvBuffer), 0, (struct sockaddr*)&servAddr, &servLen)) == -1){
+	    clntLen = sizeof(clntAddr);
+        
+        // Receive data from sockfd, store in recvBuffer, and store client address in clntAddr
+	    if((recvLen=recvfrom(sockfd, recvBuffer, BUFSIZE, 0, (struct sockaddr*)&clntAddr, &clntLen)) == -1){
 		    perror("recvfrom failed");
 		    return 1;
 	    }
 	    recvBuffer[recvLen] = '\0';
+        // Print received data
 	    printf("Received : %s\n", recvBuffer);
+
+        // Send received data to client
+        if(sendto(sockfd, recvBuffer, recvLen, 0, (struct sockaddr*)&clntAddr, sizeof(clntAddr)) != recvLen){
+            perror("sendto failed");
+            return 1;
+        }
     }
 
     close(sockfd);
