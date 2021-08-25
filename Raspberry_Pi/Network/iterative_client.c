@@ -4,11 +4,13 @@
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+// exit string
 char *escapechar = "exit\n";
 
 int main(int argc, char *argv[]){
@@ -53,7 +55,7 @@ int main(int argc, char *argv[]){
     // parent process
     if((pid = fork()) > 0){
         // parent process send the input from keyboard to server
-        print("I'm parent, %d %d\n", getpid(), getppid());
+        printf("I'm parent, %d %d\n", getpid(), getppid());
         while(fgets(sbuf, BUFSIZ, stdin) != 0){
             if(strlen(sbuf) == 5 && strncmp(sbuf, escapechar, 4) == 0){
                 // escape string

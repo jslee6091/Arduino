@@ -8,6 +8,26 @@
 #include <unistd.h>
 #define BUFSIZE 1024
 
+/*
+  int sendto(
+  	int s,		// socket descriptor number
+	char *buf,	// Sending data buffer
+	int length,	// size of buffer
+	int flags,	// usually 0
+	sockaddr *to,	// socket address struct of receiver
+	int tolen	// size of to address
+  )
+
+  int recvfrom(
+  	int s		// socket descriptor number
+	char *buf,	// Sending data buffer
+	int length,	// size of buffer
+	int flags,	// usually 0
+	sockaddr *from,	// socket address struct of sender
+	int &tolen	// pointer of from address
+  )
+*/
+
 int main(int argc, char *argv[]){
     int sockfd;
     struct sockaddr_in servAddr;
@@ -39,6 +59,7 @@ int main(int argc, char *argv[]){
 		    break;
 	    }
 
+	    // Send address of server every time when send message to server
 	    if(sendto(sockfd, sendBuffer,strlen(sendBuffer), 0, (struct sockaddr*)&servAddr, sizeof(servAddr)) != strlen(sendBuffer)){
 		    perror("sendto failed");
 		    return 1;

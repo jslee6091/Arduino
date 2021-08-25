@@ -36,16 +36,16 @@ int main(int argc, char *argv[]){
     }
 
     while(1){
-	    clntLen = sizeof(clntAddr);
+	clntLen = sizeof(clntAddr);
         
         // Receive data from sockfd, store in recvBuffer, and store client address in clntAddr
-	    if((recvLen=recvfrom(sockfd, recvBuffer, BUFSIZE, 0, (struct sockaddr*)&clntAddr, &clntLen)) == -1){
-		    perror("recvfrom failed");
-		    return 1;
-	    }
-	    recvBuffer[recvLen] = '\0';
+	if((recvLen=recvfrom(sockfd, recvBuffer, BUFSIZE, 0, (struct sockaddr*)&clntAddr, &clntLen)) == -1){
+	    perror("recvfrom failed");
+	    return 1;
+	}
+	recvBuffer[recvLen] = '\0';
         // Print received data
-	    printf("Received : %s\n", recvBuffer);
+	printf("Received : %s\n", recvBuffer);
 
         // Send received data to client
         if(sendto(sockfd, recvBuffer, recvLen, 0, (struct sockaddr*)&clntAddr, sizeof(clntAddr)) != recvLen){
