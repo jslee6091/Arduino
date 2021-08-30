@@ -16,8 +16,8 @@
 
 int echo_message(int csock);
 fd_set rd_set; 				// 읽기용 소켓 기술자 집합
-fd_set act_set; 				// 활성화된 소켓 기술자 집합
-int max_fd=0;
+fd_set act_set;				// 활성화된 소켓 기술자 집합
+int max_fd=0;               // 조사 대상인 최대기술자의 번호
 
 /*
     int select(
@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
     }
 
     printf("select_server start !!\n");
-    // set all bits of fd_set struct to 0 
+    // act_set의 모든 비트를 0으로 초기화
     FD_ZERO(&act_set);
-    // set specific bits of fd_set struct to 1
-    FD_SET(server_sock, &act_set);	// 소켓기술자 값을 1로 세팅-연결요청
+    // act_set 중에서 server_sock에 해당하는 비트를 1로 setting
+    FD_SET(server_sock, &act_set);	// 소켓기술자 값을 1로 세팅 - 클라이언트로부터 연결요청 감지
     FD_SET(0, &act_set); 		// 0을 1로 세팅 - 키보드 입력
     max_fd=server_sock;
 
@@ -94,7 +94,8 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
-	// FD_ISSET return plus number if second parameter bit of fd_set is 1
+	    // FD_ISSET : rd_set중에서 server_sock에 해당하는 비트가 1이면 양수값 return
+        // 어떤 입력 신호가 감지된 후 그 원인을 조사하는 매크로
         if(FD_ISSET(server_sock, &rd_set))	// 연결 요청이 들어오면
         {
             caddr_len = sizeof(client_addr);
@@ -106,6 +107,7 @@ int main(int argc, char *argv[])
                exit(1);
             }
             
+            // inet_ntoa() : Binary IPv4 주소를 십진법으로 변경
             printf("Echo request from %s\n", inet_ntoa(client_addr.sin_addr));
             FD_SET(client_sock, &act_set);	// 소켓기술자 값을 1로 세팅
             
@@ -124,8 +126,10 @@ int main(int argc, char *argv[])
 
         for(fd=0; fd<=max_fd; fd++)
         {
-            if((fd != server_sock) && FD_ISSET(fd, &rd_set))
-            (void) echo_message(fd);		// 메시지 송수신 루틴 호출
+            // 입력 신호 감지 후 원인 파악 위해 max_fd까지 각 rd_set값 조사
+            if((fd != server_sock) && FD_ISSET(fd, &rd_set)){
+                (void) echo_message(fd);		// 메시지 송수신 루틴 호출
+            }
         }
     } // end of While
 }
@@ -135,9 +139,11 @@ int echo_message(int csock)
     int msg_size;
     char msg_buf[BUFSIZ+1];
     msg_size = read(csock, msg_buf, BUFSIZ);  	// 메시지 수신
+    
     if(msg_size <= 0)
     {
         close(csock);
+        // act_set 중에서 csock에 해당하는 비트를 0으로 지움
         FD_CLR(csock, &act_set); 		// 기술자 값을 0으로 지움
         return(0);
     }

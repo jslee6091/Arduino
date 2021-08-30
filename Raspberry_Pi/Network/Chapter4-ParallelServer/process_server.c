@@ -58,30 +58,32 @@ int main(int argc, char *argv[]){
     printf("fork server start!!\n");
 
     while(1){
-	caddr_len = sizeof(cliaddr);
-	// accept the connection request from client
-	if((clifd = accept(servfd, (struct sockaddr *)&cliaddr, &caddr_len)) < 0){
-	    printf("accept() failed");
-	    return -1;
+	    caddr_len = sizeof(cliaddr);
+	    // accept the connection request from client
+	    if((clifd = accept(servfd, (struct sockaddr *)&cliaddr, &caddr_len)) < 0){
+	        printf("accept() failed");
+	        return -1;
     	}
-	printf("Echo request from %s\n", inet_ntoa(cliaddr.sin_addr));
-	printf("client_sock = %d\n", clifd);
+        printf("Echo request from %s\n", inet_ntoa(cliaddr.sin_addr));
+        printf("client_sock = %d\n", clifd);
     
     	if((pid = fork()) < 0){
-	    perror("fork() failed");
-	    return -1;
-	}
-	// child process
-	if(pid==0){
-	    // server socket doesn't need because child do only data sending/receiving 
-	    close(servfd);
-	    echo_message(clifd);
-	    return -1;
-	}
-	// parent process
-	// client socket doesn't need because parent do only connecting server and client
-	close(clifd);
-	printf("Parent Process %d\n", getpid());
+            perror("fork() failed");
+            return -1;
+        }
+
+        // child process
+        if(pid == 0){
+            // server socket doesn't need because child do only data sending/receiving 
+            close(servfd);
+            echo_message(clifd);
+            return -1;
+        }
+
+        // parent process
+        // client socket doesn't need because parent do only connecting server and client
+        close(clifd);
+        printf("Parent Process %d\n", getpid());
     }
 }
 
@@ -90,14 +92,17 @@ void echo_message(int csock){
     char msg_buf[BUFSIZ + 1];
     int msg_size;
     printf("Child Process %d\n", getpid());
+    
     if(read(csock, msg_buf, BUFSIZ) == -1){
-	perror("server: read");
-	exit(1);
+        perror("server: read");
+        exit(1);
     }
+ 
     printf("receive message from client => %s\n", msg_buf);
     strcat(msg_buf, " is returned message");
+ 
     if(write(csock, msg_buf, strlen(msg_buf)+1) == -1){
-	perror("server: write");
-	exit(1);
+        perror("server: write");
+    	exit(1);
     }
 }
