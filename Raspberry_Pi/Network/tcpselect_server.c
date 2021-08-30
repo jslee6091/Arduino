@@ -19,6 +19,21 @@ fd_set rd_set; 				// 읽기용 소켓 기술자 집합
 fd_set act_set; 				// 활성화된 소켓 기술자 집합
 int max_fd=0;
 
+/*
+    int select(
+    	int nfds,		// max file descriptor + 1
+	fd_set *readfds,	// set of input descriptors
+	fd_set *readfds,	// set of output descriptors
+	fd_set *readfds,	// set of error descriptors
+	struct timeval *timeout // waiting time of select
+    )
+
+    struct timeval(
+    	long tv_sec;	//seconds
+	long tv_usec;	//microseconds
+    )
+*/
+
 int main(int argc, char *argv[])
 {
     int server_sock;
@@ -62,7 +77,9 @@ int main(int argc, char *argv[])
     }
 
     printf("select_server start !!\n");
+    // set all bits of fd_set struct to 0 
     FD_ZERO(&act_set);
+    // set specific bits of fd_set struct to 1
     FD_SET(server_sock, &act_set);	// 소켓기술자 값을 1로 세팅-연결요청
     FD_SET(0, &act_set); 		// 0을 1로 세팅 - 키보드 입력
     max_fd=server_sock;
@@ -77,6 +94,7 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
+	// FD_ISSET return plus number if second parameter bit of fd_set is 1
         if(FD_ISSET(server_sock, &rd_set))	// 연결 요청이 들어오면
         {
             caddr_len = sizeof(client_addr);

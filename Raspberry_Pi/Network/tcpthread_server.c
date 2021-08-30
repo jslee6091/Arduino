@@ -2,7 +2,10 @@
 //   tcpthread_server.c (multi_thread)
 //   client : tcp_client.c
 //   compile option : -lpthread
+//   Server can accept several clients at the same time 
+//   Client sends data to server, receive data from server and terminate
 //------------------------------------
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +39,7 @@ int main(int argc, char *argv[])
     }
     server_port = atoi(argv[1]);
 
+    // PF_INET = AF_INET = TCP/IP(version 4)
     if ((server_sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
         perror("socket() failed");
@@ -71,23 +75,29 @@ int main(int argc, char *argv[])
         printf("Echo request from %s\n", inet_ntoa(client_addr.sin_addr));
         // printf("client_sock = %d\n", client_sock);
         // thread number is threads and thread function is sub
+	// client_sock is a parameter of sub function
         rc = pthread_create(&threads, NULL, sub, (void *)client_sock);
     }
 }
 
 void *sub(void *arg) 			// 스레드 함수
 {
+    // Client socket descriptor
     int csock = (int) arg;
     char msg_buf[BUFSIZ+1];
     int msg_size;
 
     printf("Process = %d Thread %d\n", getpid(), pthread_self());
+
+    // receive data from client
     if(read(csock, msg_buf, BUFSIZ) == -1)
     {
         perror("Server: read");
         exit(1);
     }
     printf("receive message from client => %s\n", msg_buf);
+
+    // send data to client
     strcat(msg_buf, " is returned message.");
     if (write(csock, msg_buf, strlen(msg_buf)+1) == -1)
     {

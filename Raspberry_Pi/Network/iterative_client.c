@@ -1,5 +1,8 @@
 // Chatting client using TCP
 // Iterative allow only one client access to server
+// Execute : ./iterative_client 127.0.0.1 3000(Random port number)
+// Server and client can chat each other without interruption
+
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>

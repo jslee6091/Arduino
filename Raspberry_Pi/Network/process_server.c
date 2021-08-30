@@ -1,6 +1,9 @@
 // parallel server by making processes
 // process is made by fork() system call
 // the client is tcp_client.c
+//   Server can accept several clients at the same time 
+//   Client sends data to server, receive data from server and terminate
+
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
