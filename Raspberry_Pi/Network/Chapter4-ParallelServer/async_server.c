@@ -1,8 +1,8 @@
 //----------------------------------------------------
-// chat_server.c
-// client : chat_client.c
-// 컴파일: $ gcc chat_server.c -o chat_server
-// 실행: $ ./chat_server 8900(or random port number)
+// async_server.c
+// client : async_client.c
+// 컴파일: $ gcc async_server.c -o async_server
+// 실행: $ ./async_server 8900(or random port number)
 //----------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>

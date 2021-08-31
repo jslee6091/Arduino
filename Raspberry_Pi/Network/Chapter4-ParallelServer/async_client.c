@@ -1,9 +1,9 @@
 //-----------------------------------------------------------------------
-// chat_client.c - chat client program
+// async_client.c - chat client program
 // Multi clients can access to server and chat with other clients
-// Server : chat_server.c
-// 컴파일: pi@netlab:∼ $ gcc chat_client.c -o chat_client
-// 실행:  pi@netlab:∼ $ chat_client IP_address_of_server port_number name
+// Server : async_server.c
+// 컴파일: $ gcc async_client.c -o async_client
+// 실행: $ async_client IP_address_of_server port_number name
 //-----------------------------------------------------------------------
 #include <stdio.h>
 #include <signal.h>
