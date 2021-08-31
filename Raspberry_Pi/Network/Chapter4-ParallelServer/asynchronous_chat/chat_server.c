@@ -1,7 +1,8 @@
 //----------------------------------------------------
-// chatselect_server.c
-// 컴파일: $ gcc chatselect_server.c -o chatselect_server
-// 실행: $ ./chatselect_server 8900
+// chat_server.c
+// client : chat_client.c
+// 컴파일: $ gcc chat_server.c -o chat_server
+// 실행: $ ./chat_server 8900(or random port number)
 //----------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,9 +60,11 @@ int main(int argc, char *argv[])
     while(1)
     {
         FD_ZERO(&read_fds);
+	// Set server_sock bit to 1 to recognize connect request from client
         FD_SET(server_sock, &read_fds);
 
         for(i=0; i<number; i++){
+	    // Set sock_no[i] bit to 1, sock_no[i] is socket descriptor doing chatting
             FD_SET(sock_no[i], &read_fds);
         }
 
@@ -95,6 +98,7 @@ int main(int argc, char *argv[])
             }
         
             // 새로운 참가자 추가 루틴
+	    // inet_ntop : Convert binary IP address to decimal address
             inet_ntop(AF_INET, &client_addr.sin_addr, message, sizeof(message));
             printf("새로운 클라이언트 참가: %s\n",message);
             sock_no[number] = client_sock;
@@ -124,7 +128,7 @@ int main(int argc, char *argv[])
                 if(strstr(buf, "exit") != NULL) {
                     del_user(i);  		// 탈퇴자 처리
                     continue;
-                
+		}
                 // 모든 참가자에게 메시지 전송
                 for (j = 0; j < number; j++)
                     write(sock_no[j], buf, strlen(buf));

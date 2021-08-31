@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
     while(flag)
     {
         memcpy(&rd_set, &act_set, sizeof(rd_set));
+	// select() : input/output process without blocking mode
         // 최대기술자 +1, 읽기용, 쓰기용, 에러용, 타임아웃
         if(select(max_fd+1, &rd_set, NULL, NULL, 0) < 0)
         {
