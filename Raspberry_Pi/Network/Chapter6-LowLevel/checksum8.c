@@ -35,11 +35,11 @@ unsigned char test(unsigned char *p, int cnt, int flag){
     }
 
     if (flag == 1){
-        *z = ∼(hap & 0xFF);
+        *z = !(hap & 0xFF);
         return 0;
     }
 
     else{
-        return ∼(hap & 0xFF);
+        return !(hap & 0xFF);
     }
 }

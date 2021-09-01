@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
             sock_no[number] = client_sock;
             number = number + 1;
 
-            strcpy(init_msg, "환영: 채팅 서버\n");
+            strcpy(init_msg, "welcome: chatting\n");
             if(write(client_sock, init_msg, strlen(init_msg)) < 0)
             {
                 perror("write error");

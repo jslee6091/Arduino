@@ -1,5 +1,10 @@
 //--------------------------
 // broadcast_sender.c (UDP)
+// Broadcasting is sending packets to all hosts in same data link using broadcast address
+// UDP protocol is used in broadcast
+// Compile : gcc -o broadcast_sender broadcast_sender.c
+// Execute : ./broadcast_sender broadcast_address 3000 message(random)
+// Broadcast address : put the 'ifconfig' command and you can get in wlan0
 //--------------------------
 #include <stdio.h>
 #include <string.h>
@@ -26,13 +31,14 @@ int main(int argc, char *argv[]){
     port = atoi(argv[2]); 
     message = argv[3]; 
     
+    // UDP Socket
     if ((broad_sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0){
         perror("broad_socket() failed");
         return -1;
     }
 
-    /* 브로드캐스트를 허용하도록 소켓 옵션 변경 */
     permission = 1;
+    // 브로드캐스트를 허용하도록 소켓 옵션 변경
     if (setsockopt(broad_sock, SOL_SOCKET, SO_BROADCAST, (void *) &permission, sizeof(permission)) < 0){
         perror("socket() failed");
         return -1;
@@ -45,7 +51,7 @@ int main(int argc, char *argv[]){
     messageLen = strlen(message);  
 
     while(1){
-        /* 매 5초마다 클라이언트에게 데이터그램을 송신 */
+        // 매 5초마다 클라이언트(receiver)에게 데이터그램을 송신
         if (sendto(broad_sock, message, messageLen, 0, (struct sockaddr *)&broad_addr, sizeof(broad_addr)) != messageLen){
             perror("sendto() failed");
             return -1;

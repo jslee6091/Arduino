@@ -6,6 +6,7 @@
 //-------------------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -39,6 +40,7 @@ int main(int argc, char *argv[]){
     memset(&group, 0, sizeof(group));
     group.sin_family = AF_INET;
     group.sin_port = htons(atoi(argv[2]));
+    // Convert decimal address to 32 bits binary address
     inet_pton(AF_INET,argv[1],&group.sin_addr);
 
     if ( (recv_sock=socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -50,6 +52,7 @@ int main(int argc, char *argv[]){
     interface.imr_multiaddr = group.sin_addr;
     interface.imr_interface.s_addr = htonl(INADDR_ANY);
 
+    // Change socket options to join the multicast group
     if (setsockopt(recv_sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &interface, sizeof(interface)) < 0){
         perror("join group failed\n");
         return -1;
@@ -75,6 +78,7 @@ int main(int argc, char *argv[]){
 
     // 송신용 소켓의 TTL 설정
     mcTTL = (u_char) TTL;
+    // Set hop range of multicast datagram
     if(setsockopt(send_sock, IPPROTO_IP, IP_MULTICAST_TTL, &mcTTL, sizeof(mcTTL)) < 0){
         perror("ttl setsockopt() failed\n");
         return -1;

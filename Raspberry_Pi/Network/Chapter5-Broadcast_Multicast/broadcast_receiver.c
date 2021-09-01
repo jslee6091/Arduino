@@ -1,5 +1,9 @@
 //----------------------------
 // broadcast_receiver.c (UDP)
+// Compile : gcc -o broadcast_receiver broadcast_receiver.c
+// Execute : ./broadcast_receiver 3000
+// Several receivers can access to broadcast address and get message at the same time
+// If sender sets not broadcast but local or IPv4 address, receives can't get message at the same time
 //----------------------------
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +26,7 @@ int main(int argc, char *argv[]){
     }
     port = atoi(argv[1]);
 
+    // UDP Socket
     if ((sock_fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0){
         perror("socket() failed");
         return -1;
@@ -32,16 +37,17 @@ int main(int argc, char *argv[]){
     broad_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     broad_addr.sin_port = htons(port);
     
-    /* 소켓주소의 재사용 */
+    // 소켓주소의 재사용
+    // After this, it can bind local address when receive message in same computer
     setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (void*) &set, sizeof(set));
 
-    /* 방송 주소의 바인딩 */
+    // 방송 주소의 바인딩
     if (bind(sock_fd, (struct sockaddr *) &broad_addr, sizeof(broad_addr)) < 0){
         perror("bind() failed");
         return -1;
     }
 
-    /* 서버로 부터 하나의 데이터그램을 수신 */
+    // 서버로 부터 하나의 데이터그램을 수신
     if ((messageLen = recvfrom(sock_fd, message, 255, 0, NULL, 0)) < 0){
         perror("recvfrom() failed");
         return -1;

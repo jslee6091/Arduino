@@ -12,6 +12,24 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+/*
+  int setsockopt(
+  	int socket,			// Socket descriptor
+	int level,			// Protocol level
+	int option_name,		// Option name
+	const void *option_val,		// Pointer of option
+	unsigned int option_len		// Byte of variable of option
+  )
+
+  int getsockopt(
+  	int socket,			// Socket descriptor
+	int level,			// Protocol level
+	int option_name,		// Option name
+	void *option_val,		// Pointer of option
+	unsigned int option_len		// Byte of variable of option
+  )
+*/
+
 int main(){
     int s;
     int val, len; 			// 수신버퍼

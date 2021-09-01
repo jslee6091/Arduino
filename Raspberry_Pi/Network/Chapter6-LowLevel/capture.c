@@ -1,20 +1,22 @@
 //---------------------------------------------
 // capture.c (raw socket)
+// Capture and analysis packets and output the protocol header using raw socket
 // 실행: $ sudo ./capture wlan0 10
 //---------------------------------------------
-#include  <stdio.h>
-#include  <string.h>
-#include  <stdlib.h>
-#include  <net/ethernet.h>
-#include  <unistd.h>
-#include  <sys/ioctl.h>
-#include  <arpa/inet.h>
-#include  <sys/socket.h>
-#include  <linux/if.h>
-#include  <netpacket/packet.h>
-#include  <netinet/if_ether.h>
-#include  <netinet/ip.h>
-#include  <netinet/tcp.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <net/ethernet.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <linux/if.h>
+#include <netpacket/packet.h>
+#include <netinet/if_ether.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
 
 int print_ETHER_header(struct ether_header *eh);
 int print_IP_header(struct iphdr *iphdr, u_char *option, int option_length);
@@ -23,12 +25,12 @@ int TCP_analysis(u_char *data, int size);
 int IP_analysis(u_char *data, int size);
 int PACKET_analysis(u_char *data, int size);
 
-struct ether_header *eh;		// 이더넷헤더
-struct iphdr *iphdr;			// IP 헤더
+struct ether_header *eh;	// 이더넷헤더
+struct iphdr *iphdr;		// IP 헤더
 u_char *option;
 int option_length;
-int original_size;				// 패킷 크기
-int count;				// 캡처하려는 패킷의 개수
+int original_size;		// 패킷 크기(capture at ethernet header)
+int count;			// 캡처하려는 패킷의 개수
 
 //----------- main -------------------------
 // raw socket 생성, 무차별모드 설정, 패킷 수신
@@ -46,22 +48,30 @@ int main(int argc,char *argv[],char *envp[]){
 
     count = atoi(argv[2]);
  
+    // Make raw socket and capture only IP packet
+    // if ETH_P_ALL, this mean that capture all packets including IP packet
     if((sock= socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP))) < 0){
         perror("raw_socket creation error");
         return -1;
     }
  
     memset(&ifreq,0,sizeof(struct ifreq));
+    // put argv[1] into ifreq.ifr_name
     strcpy(ifreq.ifr_name, argv[1]);
  
+    // Change the interface property using ioctl() function
+    // ioctl() is device control function
     if(ioctl(sock, SIOCGIFFLAGS, &ifreq) < 0){
         perror("ioctl");
         close(sock);
         return -1;
     }
  
+    // Set operation of interface card to promiscuous mode
     ifreq.ifr_flags = ifreq.ifr_flags | IFF_PROMISC;
  
+    // Set real operation mode to promiscuous mode
+    // Network card can receive all ethernet frame if not receiver
     if(ioctl(sock, SIOCSIFFLAGS, &ifreq) < 0){
         perror("ioctl: promiscous mode");
         close(sock);
@@ -69,13 +79,14 @@ int main(int argc,char *argv[],char *envp[]){
     }
 
     while(1){
+	// receive the packet
         if((size = read(sock, buf, sizeof(buf))) <= 0){
             perror("read");
             return -1;
         }
 
         else{
-            PACKET_analysis(buf, size);         // 이더넷 헤더분석
+            PACKET_analysis(buf, size);	// 이더넷 헤더분석
         }
     }
 
@@ -88,7 +99,7 @@ int PACKET_analysis(u_char *data, int size){
     u_char  *pointer;
     int  rest;
 
-    original_size = size; 				// 전체 패킷 크기
+    original_size = size; 	// 전체 패킷 크기
     pointer = data;
     rest = size;
 
@@ -97,11 +108,14 @@ int PACKET_analysis(u_char *data, int size){
         return -1;
     }
 
-    eh = (struct ether_header *)pointer; 		// 이더넷 헤더 포인터
+    eh = (struct ether_header *)pointer; 	// 이더넷 헤더 포인터
     pointer = pointer + sizeof(struct ether_header);
     rest = rest - sizeof(struct ether_header);
+
+    // 0x800 mean that IP is located above the ethernet
+    // There are type of DIX-II ethernet frame in /usr/include/net/ethernet.h
     if(ntohs(eh->ether_type) == ETHERTYPE_IP){ 	// 0x800	
-        IP_analysis(pointer,rest); 			// IP 헤더분석 함수호출
+        IP_analysis(pointer,rest); 	// IP 헤더분석 함수호출
     }
     return 0;
 }
@@ -118,10 +132,13 @@ int IP_analysis(u_char *data, int size){
         return -1;
     }
 
-     iphdr = (struct iphdr *)pointer;
-     pointer = pointer + sizeof(struct iphdr);
-     rest = rest - sizeof(struct iphdr); 
-     option_length = iphdr->ihl*4 - sizeof(struct iphdr);
+    iphdr = (struct iphdr *)pointer;
+    // move pointer at size of IP header to point the first of next protocol(TCP)
+    pointer = pointer + sizeof(struct iphdr);
+    // remove the size of IP header
+    rest = rest - sizeof(struct iphdr); 
+    // get option length
+    option_length = iphdr->ihl*4 - sizeof(struct iphdr);
 
     if(option_length > 0){
         if(option_length >= 1500){
@@ -133,8 +150,10 @@ int IP_analysis(u_char *data, int size){
         rest = rest - option_length;
     }
 
+    // if upper layer is TCP
     if(iphdr->protocol == IPPROTO_TCP){
         TCP_analysis(pointer, rest);     // TCP 헤더분석 함수호출
+	// check /usr/include/netinet/in.h
     }
 }
 
@@ -155,8 +174,9 @@ int TCP_analysis(u_char *data, int size){
 
     tcphdr = (struct tcphdr *)pointer; 
     pointer = pointer + sizeof(struct tcphdr);
+    // get application layer message length by remove tcp header size
     rest = rest - sizeof(struct tcphdr);
-    printf("\nPacket[%d bytes]\n", original_size);	// 패킷크기
+    printf("\nPacket[%d bytes]\n", original_size); // 패킷(ethernet driver captured)크기
 
     //----------- 응용 메시지 출력 -----------
     printf("\nApplication Message\n");
@@ -174,6 +194,7 @@ int TCP_analysis(u_char *data, int size){
  
     i = i+1;
     if(i >= count)
+	// exit if i get over the number of parameter
         exit(-1);
     else
         return 0;

@@ -1,5 +1,9 @@
 //-----------------------
 // multicast_receiver.c
+// For multicast communication, it should join the multicast group address
+// Sender sends data on the multicast tree.
+// Receiver connected to the multicast tree and can receive data from sender
+// So it's important to make efficient tree
 //-----------------------
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +36,7 @@ int main(int argc, char *argv[]){
     }
 
     // 소켓 재사용
-    setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (void)*&set, sizeof(set));
+    setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (void*)&set, sizeof(set));
     memset(&multi_addr, 0, sizeof(multi_addr));
     multi_addr.sin_family = AF_INET;
     multi_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
@@ -53,7 +57,7 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-    /* 서버로부터 데이터그램 수신 */
+    // 서버로부터 데이터그램 수신
     if ((messageLen = recvfrom(sock_fd, message, 255, 0, NULL, 0)) < 0){
         perror("recvfrom() failed");
         return -1;
