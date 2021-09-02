@@ -2,6 +2,8 @@
 // capture.c (raw socket)
 // Capture and analysis packets and output the protocol header using raw socket
 // 실행: $ sudo ./capture wlan0 10
+// wlan0 : 무선랜 인터페이스, 10 : 출력 패킷 개수
+// wlan0 대신 eth0도 가능
 //---------------------------------------------
 #include <stdio.h>
 #include <string.h>
